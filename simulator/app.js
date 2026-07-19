@@ -22,30 +22,48 @@ let currentInputs = { ...defaultInputs };
  * @returns {Object} 包含各節點溫度及中間常數的結果物件
  */
 function calculateThermodynamics(inputs) {
-  const { t0, CMH, a, h, COP, SHR, e } = inputs;
+  let { t0, CMH, a, h, COP, SHR, e } = inputs;
+
+  // Guardrail 1: Efficiency Bound (0.0 <= e <= 0.95)
+  // Prevents division by zero when e = 1.0
+  e = Math.max(0.0, Math.min(0.95, e));
+
+  // Guardrail 2: Stagnant Airflow
+  // Prevents division by zero in K calculation
+  if (CMH <= 0) {
+    CMH = 0.001; 
+  }
+
+  // Guardrail 3: Power Bounds (Non-negative)
+  a = Math.max(0.0, a);
+  h = Math.max(0.0, h);
 
   // 步驟一：計算空氣熱容量常數 (K)
   const K = (CMH / 3600.0) * RHO * CP;
 
   // 步驟二：計算三大引擎淨溫差 (dT)
-  // 蒸發器降溫：dTe
-  const dTe = K > 0 ? (a * COP * SHR) / K : 0;
-  // 冷凝器升溫：dTc
-  const dTc = K > 0 ? (a * (COP + 1.0)) / K : 0;
-  // 電加熱器升溫：dTh
-  const dTh = K > 0 ? h / K : 0;
+  let dTe = 0;
+  let dTc = 0;
+  let dTh = 0;
+
+  // Power Off Mode: if a=0 and h=0, all dT remain 0, and node temperatures collapse to t0
+  if (a > 0 || h > 0) {
+    // 蒸發器降溫：dTe
+    dTe = (a * COP * SHR) / K;
+    // 冷凝器升溫：dTc
+    dTc = (a * (COP + 1.0)) / K;
+    // 電加熱器升溫：dTh
+    dTh = h / K;
+  }
 
   // 步驟三：解算全系統節點溫度 (t1 ~ t7)
-  const eFactor = 1.0 - e;
+  const eFactor = 1.0 - e; // Guaranteed to be >= 0.05
   
-  // 避免除以 0
-  const safeEFactor = eFactor === 0 ? 0.001 : eFactor;
-
-  const t2 = t0 - (dTe / safeEFactor);
+  const t2 = t0 - (dTe / eFactor);
   const t1 = t2 + dTe;
   const t3 = t0 - dTe;
   
-  const t6 = t3 + ((dTc + dTh) / safeEFactor);
+  const t6 = t3 + ((dTc + dTh) / eFactor);
   const t5 = t6 - dTh;
   const t4 = t6 - dTc - dTh;
   const t7 = t3 + dTc + dTh;
