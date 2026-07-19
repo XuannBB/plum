@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工業除濕烘乾熱力學模擬系統 - 梅子炊熟機</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 系統標題欄 -->
+  <header>
+    <div class="brand-container">
+      <div class="brand-icon"></div>
+      <h1 class="brand-title">工業除濕烘乾熱力學模擬儀表板</h1>
+    </div>
+    <div class="status-badge">
+      <div class="pulse-dot"></div>
+      <span>SIMULATOR ONLINE</span>
+    </div>
+  </header>
+
+  <!-- 主儀表板區域 -->
+  <main class="dashboard-container">
+
+    <!-- 左側控制面板 -->
+    <section class="control-panel glass-card">
+      <h2 class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 3m0-3a2 2 0 110 3m-9 1h9m-9 5a2 2 0 110-4h9m-9 4a2 2 0 100-4v4m0 0h9m-9 8a2 2 0 100-4v4m0 0h9" />
+        </svg>
+        獨立變數控制 (Inputs)
+      </h2>
+      
+      <div class="input-group">
+        <!-- t0 -->
+        <div class="slider-container">
+          <div class="slider-header">
+            <span class="slider-label">環境溫度 (t0)</span>
+            <div class="slider-value-wrapper">
+              <input type="number" id="num-t0" class="slider-num-input" min="0" max="50" step="0.5" value="30.0">
+              <span class="slider-unit">°C</span>
+            </div>
+          </div>
+          <div class="slider-input-row">
+            <input type="range" id="slider-t0" min="0" max="50" step="0.5" value="30.0">
+          </div>
+        </div>
+
+        <!-- CMH -->
+        <div class="slider-container">
+          <div class="slider-header">
+            <span class="slider-label">系統風量 (CMH)</span>
+            <div class="slider-value-wrapper">
+              <input type="number" id="num-CMH" class="slider-num-input" min="500" max="2500" step="50" value="1500">
+              <span class="slider-unit">m³/h</span>
+            </div>
+          </div>
+          <div class="slider-input-row">
+            <input type="range" id="slider-CMH" min="500" max="2500" step="50" value="1500">
+          </div>
+        </div>
+
+        <!-- a -->
+        <div class="slider-container">
+          <div class="slider-header">
+            <span class="slider-label">壓縮機輸入功率 (a)</span>
+            <div class="slider-value-wrapper">
+              <input type="number" id="num-a" class="slider-num-input" min="0" max="3.5" step="0.1" value="2.5">
+              <span class="slider-unit">kW</span>
+            </div>
+          </div>
+          <div class="slider-input-row">
+            <input type="range" id="slider-a" min="0" max="3.5" step="0.1" value="2.5">
+          </div>
+        </div>
+
+        <!-- h -->
+        <div class="slider-container">
+          <div class="slider-header">
+            <span class="slider-label">電熱排輸入功率 (h)</span>
+            <div class="slider-value-wrapper">
+              <input type="number" id="num-h" class="slider-num-input" min="0" max="6.0" step="0.1" value="4.0">
+              <span class="slider-unit">kW</span>
+            </div>
+          </div>
+          <div class="slider-input-row">
+            <input type="range" id="slider-h" min="0" max="6.0" step="0.1" value="4.0">
+          </div>
+        </div>
+
+        <!-- COP -->
+        <div class="slider-container">
+          <div class="slider-header">
+            <span class="slider-label">壓縮機效能係數 (COP)</span>
+            <div class="slider-value-wrapper">
+              <input type="number" id="num-COP" class="slider-num-input" min="1.0" max="5.0" step="0.05" value="3.15">
+              <span class="slider-unit">-</span>
+            </div>
+          </div>
+          <div class="slider-input-row">
+            <input type="range" id="slider-COP" min="1.0" max="5.0" step="0.05" value="3.15">
+          </div>
+        </div>
+
+        <!-- SHR -->
+        <div class="slider-container">
+          <div class="slider-header">
+            <span class="slider-label">冷排顯熱比 (SHR)</span>
+            <div class="slider-value-wrapper">
+              <input type="number" id="num-SHR" class="slider-num-input" min="0.3" max="1.0" step="0.05" value="0.65">
+              <span class="slider-unit">-</span>
+            </div>
+          </div>
+          <div class="slider-input-row">
+            <input type="range" id="slider-SHR" min="0.3" max="1.0" step="0.05" value="0.65">
+          </div>
+        </div>
+
+        <!-- e -->
+        <div class="slider-container">
+          <div class="slider-header">
+            <span class="slider-label">熱交換器轉換效率 (e)</span>
+            <div class="slider-value-wrapper">
+              <input type="number" id="num-e" class="slider-num-input" min="0.0" max="0.95" step="0.05" value="0.6">
+              <span class="slider-unit">-</span>
+            </div>
+          </div>
+          <div class="slider-input-row">
+            <input type="range" id="slider-e" min="0.0" max="0.95" step="0.05" value="0.6">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右側主視覺與流程圖 -->
+    <section class="main-canvas">
+      <div class="glass-card" style="padding: 1rem;">
+        <div class="card-title" style="margin-bottom: 0.5rem; border-bottom: none; padding-bottom: 0;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A2 2 0 013 15.487V7.513a2 2 0 011.1-1.789L9 3m0 17l9.94-4.97a2 2 0 001.06-1.789V7.513a2 2 0 00-1.06-1.789L9 3m0 17V3" />
+          </svg>
+          系統 P&ID 雙重熱回收流程示意圖 (動態模擬)
+        </div>
+        
+        <div class="canvas-viewport">
+          <svg class="pid-svg" viewBox="0 0 850 530" xmlns="http://www.w3.org/2000/svg">
+            <!-- 網格背景 -->
+            <defs>
+              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 20 0 L 0 0 0 20" fill="none" class="svg-bg-grid" />
+              </pattern>
+              
+              <!-- 漸層定義 -->
+              <linearGradient id="cool-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.05"/>
+              </linearGradient>
+              <linearGradient id="hot-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#EF4444" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.05"/>
+              </linearGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+
+            <!-- === 物理管路 (背景線條) === -->
+            <!-- 氣流路徑 1: 外氣 t0 -> 低溫全熱交換器 -->
+            <path d="M 20 90 L 150 90" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" />
+            <path d="M 20 90 L 150 90" fill="none" stroke="#60A5FA" stroke-width="2" class="flow-line" />
+
+            <!-- 氣流路徑 2: 低溫全熱交換器 -> 蒸發器 (t1) -->
+            <path d="M 250 90 L 320 90" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" />
+            <path d="M 250 90 L 320 90" fill="none" stroke="#93C5FD" stroke-width="2" class="flow-line" />
+
+            <!-- 氣流路徑 3: 蒸發器 -> 低溫全熱交換器 (t2) -->
+            <path d="M 380 130 L 250 130" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" />
+            <path d="M 380 130 L 250 130" fill="none" stroke="#38BDF8" stroke-width="2" class="flow-line" />
+
+            <!-- 氣流路徑 4: 低溫全熱交換器 -> 高溫全熱交換器 (t3) -->
+            <path d="M 150 130 L 100 130 L 100 370 L 150 370" fill="none" stroke="#1E293B" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" />
+            <path d="M 150 130 L 100 130 L 100 370 L 150 370" fill="none" stroke="#0EA5E9" stroke-width="2" stroke-linejoin="round" class="flow-line" />
+
+            <!-- 氣流路徑 5: 高溫全熱交換器 -> 冷凝器 (t4) -->
+            <path d="M 250 370 L 320 370" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" />
+            <path d="M 250 370 L 320 370" fill="none" stroke="#F59E0B" stroke-width="2" class="flow-line" />
+
+            <!-- 氣流路徑 6: 冷凝器 -> 加熱排 (t5) -->
+            <path d="M 380 370 L 460 370" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" />
+            <path d="M 380 370 L 460 370" fill="none" stroke="#F97316" stroke-width="2" class="flow-line" />
+
+            <!-- 氣流路徑 7: 加熱排 -> 貨櫃 (t6) -->
+            <path d="M 520 370 L 640 370" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" />
+            <path d="M 520 370 L 640 370" fill="none" stroke="#EF4444" stroke-width="2" class="flow-line" />
+
+            <!-- 氣流路徑 8: 貨櫃排氣 -> 高溫全熱交換器 (t6 exhaust) -->
+            <path d="M 640 450 L 250 450" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" />
+            <path d="M 640 450 L 250 450" fill="none" stroke="#EC4899" stroke-width="2" class="flow-line" />
+
+            <!-- 氣流路徑 9: 高溫全熱交換器 -> 排氣 (t7) -->
+            <path d="M 150 450 L 20 450" fill="none" stroke="#1E293B" stroke-width="6" stroke-linecap="round" />
+            <path d="M 150 450 L 20 450" fill="none" stroke="#8B5CF6" stroke-width="2" class="flow-line" />
+
+            <!-- 冷媒循環管路 (壓縮機 -> 冷凝器 & 蒸發器) -->
+            <!-- 壓縮機排氣至冷凝器 (熱冷媒) -->
+            <path d="M 350 250 L 350 350" fill="none" stroke="rgba(239, 68, 68, 0.4)" stroke-dasharray="4,4" stroke-width="3" />
+            <path d="M 350 250 L 350 350" fill="none" stroke="#EF4444" stroke-width="2" class="flow-refrigerant-hot" />
+            <!-- 蒸發器回氣至壓縮機 (冷冷媒) -->
+            <path d="M 350 150 L 350 210" fill="none" stroke="rgba(6, 182, 212, 0.4)" stroke-dasharray="4,4" stroke-width="3" />
+            <path d="M 350 150 L 350 210" fill="none" stroke="#06B6D4" stroke-width="2" class="flow-refrigerant-cold" />
+            <!-- 冷凝器回蒸發器膨脹閥迴路 (示意) -->
+            <path d="M 330 350 L 310 350 L 310 150 L 330 150" fill="none" stroke="rgba(16, 185, 129, 0.3)" stroke-width="2" />
+
+            <!-- === 核心設備元件 === -->
+
+            <!-- 1. 低溫全熱交換器 (Low-temp HX) -->
+            <g transform="translate(150, 60)">
+              <rect width="100%" height="100" fill="url(#cool-grad)" stroke="#3B82F6" stroke-width="2" rx="8" />
+              <line x1="0" y1="0" x2="100" y2="100" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1.5" />
+              <line x1="100" y1="0" x2="0" y2="100" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1.5" />
+              <text x="50" y="30" fill="#93C5FD" font-size="10" font-weight="600" text-anchor="middle">低溫全熱交換器</text>
+              <text x="50" y="45" fill="rgba(255,255,255,0.4)" font-size="8" text-anchor="middle">Plate HX (Low-T)</text>
+              <!-- 內部冷凝水排出標誌 -->
+              <path d="M 50 70 L 50 95 L 45 95 M 50 95 L 55 95" stroke="#3B82F6" stroke-width="1.5" fill="none"/>
+              <circle cx="50" cy="103" r="2" fill="#3B82F6" />
+            </g>
+
+            <!-- 2. 蒸發器 (冷排) -->
+            <g transform="translate(320, 60)">
+              <rect width="60" height="90" fill="rgba(6, 182, 212, 0.05)" stroke="#06B6D4" stroke-width="2" rx="4" />
+              <text x="30" y="22" fill="#06B6D4" font-size="10" font-weight="600" text-anchor="middle">蒸發器</text>
+              <text x="30" y="34" fill="var(--text-muted)" font-size="7" text-anchor="middle">(冷排)</text>
+              <!-- 蛇形冷卻管路 -->
+              <path id="evaporator-coil" d="M 15 45 L 45 45 L 45 55 L 15 55 L 15 65 L 45 65 L 45 75 L 15 75" fill="none" stroke="#06B6D4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="evaporator-glow" />
+            </g>
+
+            <!-- 3. 冷氣循環風扇 (Evaporator Fan) -->
+            <g transform="translate(395, 110)">
+              <circle cx="0" cy="0" r="16" fill="rgba(30, 41, 59, 0.8)" stroke="#38BDF8" stroke-width="1.5" />
+              <!-- 風扇扇葉 -->
+              <g id="fan-blade" class="fan-blade">
+                <path d="M -2 -14 L 2 -14 L 4 0 L -4 0 Z" fill="#38BDF8" />
+                <path d="M -2 14 L 2 14 L 4 0 L -4 0 Z" fill="#38BDF8" />
+                <path d="M -14 -2 L -14 2 L 0 4 L 0 -4 Z" fill="#38BDF8" />
+                <path d="M 14 -2 L 14 2 L 0 4 L 0 -4 Z" fill="#38BDF8" />
+                <circle cx="0" cy="0" r="4" fill="#0B0F19" />
+              </g>
+              <text x="0" y="26" fill="var(--text-secondary)" font-size="8" text-anchor="middle">風機</text>
+            </g>
+
+            <!-- 4. 壓縮機 (Compressor) -->
+            <g transform="translate(350, 230)">
+              <circle cx="0" cy="0" r="22" fill="#1F2937" stroke="#10B981" stroke-width="2" style="filter: drop-shadow(0 0 6px rgba(16,185,129,0.3));" />
+              <path d="M -10 -5 L 10 -5 L 0 12 Z" fill="none" stroke="#10B981" stroke-width="2" stroke-linejoin="round"/>
+              <text x="0" y="-28" fill="#10B981" font-size="10" font-weight="600" text-anchor="middle">壓縮機</text>
+              <text x="0" y="32" fill="var(--text-muted)" font-size="8" text-anchor="middle">Compressor</text>
+            </g>
+
+            <!-- 5. 高溫全熱交換器 (High-temp HX) -->
+            <g transform="translate(150, 340)">
+              <rect width="100%" height="120" fill="url(#hot-grad)" stroke="#F59E0B" stroke-width="2" rx="8" />
+              <line x1="0" y1="0" x2="100" y2="120" stroke="rgba(245, 158, 11, 0.3)" stroke-width="1.5" />
+              <line x1="100" y1="0" x2="0" y2="120" stroke="rgba(245, 158, 11, 0.3)" stroke-width="1.5" />
+              <text x="50" y="40" fill="#FDE047" font-size="10" font-weight="600" text-anchor="middle">高溫全熱交換器</text>
+              <text x="50" y="55" fill="rgba(255,255,255,0.4)" font-size="8" text-anchor="middle">Plate HX (High-T)</text>
+              <!-- 內部冷凝水排出標誌 -->
+              <path d="M 50 80 L 50 115 L 45 115 M 50 115 L 55 115" stroke="#F59E0B" stroke-width="1.5" fill="none"/>
+              <circle cx="50" cy="123" r="2" fill="#F59E0B" />
+            </g>
+
+            <!-- 6. 冷凝器 (熱排) -->
+            <g transform="translate(320, 340)">
+              <rect width="60" height="90" fill="rgba(245, 158, 11, 0.05)" stroke="#F59E0B" stroke-width="2" rx="4" />
+              <text x="30" y="22" fill="#F59E0B" font-size="10" font-weight="600" text-anchor="middle">冷凝器</text>
+              <text x="30" y="34" fill="var(--text-muted)" font-size="7" text-anchor="middle">(熱排)</text>
+              <!-- 蛇形加熱管路 -->
+              <path id="condenser-coil" d="M 15 45 L 45 45 L 45 55 L 15 55 L 15 65 L 45 65 L 45 75 L 15 75" fill="none" stroke="#F59E0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="condenser-glow" />
+            </g>
+
+            <!-- 7. 電子加熱器 (Heater) -->
+            <g transform="translate(460, 340)">
+              <rect width="60" height="90" fill="rgba(239, 68, 68, 0.05)" stroke="#EF4444" stroke-width="2" rx="4" />
+              <text x="30" y="22" fill="#EF4444" font-size="10" font-weight="600" text-anchor="middle">電熱排</text>
+              <text x="30" y="34" fill="var(--text-muted)" font-size="7" text-anchor="middle">(電子加熱器)</text>
+              <!-- 電熱絲圖形 -->
+              <path id="heater-coil" d="M 15 45 L 25 55 L 35 45 L 45 55 L 15 65 L 25 75 L 35 65 L 45 75" fill="none" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="heater-glow" />
+            </g>
+
+            <!-- 8. 貨櫃烘乾室 (Cargo Container / Room) -->
+            <g transform="translate(640, 320)">
+              <rect width="180" height="170" fill="rgba(30, 41, 59, 0.5)" stroke="#8B5CF6" stroke-width="2" rx="10" />
+              <rect x="10" y="10" width="160" height="150" fill="none" stroke="rgba(139, 92, 246, 0.15)" stroke-width="1" stroke-dasharray="2,2"/>
+              <text x="90" y="35" fill="#C084FC" font-size="14" font-weight="700" text-anchor="middle">貨櫃烘乾室 (Room)</text>
+              <text x="90" y="50" fill="var(--text-muted)" font-size="8" text-anchor="middle">CONTAINER CHAMBER</text>
+              
+              <!-- 內部烘乾目標：梅子 (繪製三顆梅子示意) -->
+              <g transform="translate(90, 100)">
+                <!-- 梅子 1 -->
+                <circle cx="-35" cy="0" r="16" fill="#10B981" stroke="#047857" stroke-width="1.5" opacity="0.85" />
+                <path d="M -35 -16 Q -30 -22 -26 -20" stroke="#047857" stroke-width="1.5" fill="none" />
+                <!-- 梅子 2 -->
+                <circle cx="5" cy="15" r="18" fill="#F59E0B" stroke="#B45309" stroke-width="1.5" opacity="0.85" />
+                <path d="M 5 -3 Q 12 -9 16 -5" stroke="#B45309" stroke-width="1.5" fill="none" />
+                <!-- 梅子 3 -->
+                <circle cx="35" cy="-10" r="15" fill="#EF4444" stroke="#B91C1C" stroke-width="1.5" opacity="0.85" />
+                <path d="M 35 -25 Q 40 -30 43 -27" stroke="#B91C1C" stroke-width="1.5" fill="none" />
+                <text x="0" y="45" fill="var(--text-secondary)" font-size="9" text-anchor="middle">物料熟化烘乾中 (梅子)</text>
+              </g>
+            </g>
+
+            <!-- 9. 高靜壓排氣風機 (Exhaust Fan) -->
+            <g transform="translate(95, 450)">
+              <circle cx="0" cy="0" r="16" fill="rgba(30, 41, 59, 0.8)" stroke="#8B5CF6" stroke-width="1.5" />
+              <!-- 風扇扇葉 -->
+              <g id="fan-blade-exhaust" class="fan-blade-exhaust">
+                <path d="M -2 -14 L 2 -14 L 4 0 L -4 0 Z" fill="#8B5CF6" />
+                <path d="M -2 14 L 2 14 L 4 0 L -4 0 Z" fill="#8B5CF6" />
+                <path d="M -14 -2 L -14 2 L 0 4 L 0 -4 Z" fill="#8B5CF6" />
+                <path d="M 14 -2 L 14 2 L 0 4 L 0 -4 Z" fill="#8B5CF6" />
+                <circle cx="0" cy="0" r="4" fill="#0B0F19" />
+              </g>
+              <text x="0" y="26" fill="var(--text-secondary)" font-size="8" text-anchor="middle">排風機</text>
+            </g>
+
+
+            <!-- === 溫度監測標籤 (Node Badges) === -->
+            
+            <!-- t0 Badge (環境輸入) -->
+            <g id="badge-t0" class="node-badge-group" transform="translate(15, 45)">
+              <rect id="rect-t0" x="0" y="0" width="65" height="28" rx="6" fill="#3B82F6" stroke="#3B82F6" stroke-width="1.5" class="node-rect" />
+              <text x="5" y="10" class="node-badge-title">t0 外氣</text>
+              <text id="val-t0" x="5" y="23" fill="#FFF" class="node-badge-text">--.-°C</text>
+            </g>
+
+            <!-- t1 Badge (冷排入口) -->
+            <g id="badge-t1" class="node-badge-group" transform="translate(255, 45)">
+              <rect id="rect-t1" x="0" y="0" width="65" height="28" rx="6" fill="#3B82F6" stroke="#3B82F6" stroke-width="1.5" class="node-rect" />
+              <text x="5" y="10" class="node-badge-title">t1 預冷後</text>
+              <text id="val-t1" x="5" y="23" fill="#FFF" class="node-badge-text">--.-°C</text>
+            </g>
+
+            <!-- t2 Badge (冷排出口) -->
+            <g id="badge-t2" class="node-badge-group" transform="translate(255, 145)">
+              <rect id="rect-t2" x="0" y="0" width="65" height="28" rx="6" fill="#3B82F6" stroke="#3B82F6" stroke-width="1.5" class="node-rect" />
+              <text x="5" y="10" class="node-badge-title">t2 最冷點</text>
+              <text id="val-t2" x="5" y="23" fill="#FFF" class="node-badge-text">--.-°C</text>
+            </g>
+
+            <!-- t3 Badge (冷循環出口) -->
+            <g id="badge-t3" class="node-badge-group" transform="translate(15, 145)">
+              <rect id="rect-t3" x="0" y="0" width="65" height="28" rx="6" fill="#3B82F6" stroke="#3B82F6" stroke-width="1.5" class="node-rect" />
+              <text x="5" y="10" class="node-badge-title">t3 回收乾風</text>
+              <text id="val-t3" x="5" y="23" fill="#FFF" class="node-badge-text">--.-°C</text>
+            </g>
+
+            <!-- t4 Badge (熱排入口) -->
+            <g id="badge-t4" class="node-badge-group" transform="translate(255, 435)">
+              <rect id="rect-t4" x="0" y="0" width="65" height="28" rx="6" fill="#3B82F6" stroke="#3B82F6" stroke-width="1.5" class="node-rect" />
+              <text x="5" y="10" class="node-badge-title">t4 預熱乾風</text>
+              <text id="val-t4" x="5" y="23" fill="#FFF" class="node-badge-text">--.-°C</text>
+            </g>
+
+            <!-- t5 Badge (電熱排入口) -->
+            <g id="badge-t5" class="node-badge-group" transform="translate(390, 435)">
+              <rect id="rect-t5" x="0" y="0" width="65" height="28" rx="6" fill="#3B82F6" stroke="#3B82F6" stroke-width="1.5" class="node-rect" />
+              <text x="5" y="10" class="node-badge-title">t5 廢熱熱風</text>
+              <text id="val-t5" x="5" y="23" fill="#FFF" class="node-badge-text">--.-°C</text>
+            </g>
+
+            <!-- t6 Badge (貨櫃輸入) -->
+            <g id="badge-t6" class="node-badge-group" transform="translate(535, 435)">
+              <rect id="rect-t6" x="0" y="0" width="65" height="28" rx="6" fill="#3B82F6" stroke="#3B82F6" stroke-width="1.5" class="node-rect" />
+              <text x="5" y="10" class="node-badge-title">t6 烘乾最高</text>
+              <text id="val-t6" x="5" y="23" fill="#FFF" class="node-badge-text">--.-°C</text>
+            </g>
+
+            <!-- t7 Badge (系統排氣) -->
+            <g id="badge-t7" class="node-badge-group" transform="translate(15, 395)">
+              <rect id="rect-t7" x="0" y="0" width="65" height="28" rx="6" fill="#3B82F6" stroke="#3B82F6" stroke-width="1.5" class="node-rect" />
+              <text x="5" y="10" class="node-badge-title">t7 系統排放</text>
+              <text id="val-t7" x="5" y="23" fill="#FFF" class="node-badge-text">--.-°C</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- 中間物理特徵迷你卡片 -->
+      <div class="component-card-grid">
+        <div class="component-mini-card">
+          <span class="mini-card-title">熱容量常數 (K)</span>
+          <span id="card-val-k" class="mini-card-val" style="color: var(--accent-blue)">0.00000</span>
+          <span style="font-size:0.75rem; color:var(--text-muted)">kW/K</span>
+        </div>
+        <div class="component-mini-card">
+          <span class="mini-card-title">蒸發器降溫 (ΔTe)</span>
+          <span id="card-val-dte" class="mini-card-val" style="color: var(--accent-cyan)">0.00 °C</span>
+          <span style="font-size:0.75rem; color:var(--text-muted)">a × COP × SHR / K</span>
+        </div>
+        <div class="component-mini-card">
+          <span class="mini-card-title">冷凝器升溫 (ΔTc)</span>
+          <span id="card-val-dtc" class="mini-card-val" style="color: var(--accent-amber)">0.00 °C</span>
+          <span style="font-size:0.75rem; color:var(--text-muted)">a × (COP + 1) / K</span>
+        </div>
+        <div class="component-mini-card">
+          <span class="mini-card-title">電子加熱器升溫 (ΔTh)</span>
+          <span id="card-val-dth" class="mini-card-val" style="color: var(--accent-red)">0.00 °C</span>
+          <span style="font-size:0.75rem; color:var(--text-muted)">h / K</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 底部數據細節與報告匯出 -->
+    <section class="data-panel glass-card">
+      <div class="panel-header-row">
+        <h2 class="card-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          熱力學狀態節點詳細列表
+        </h2>
+        <button id="btn-export" class="btn-export">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          匯出模擬數據報告 (CSV)
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 15%">節點</th>
+              <th style="width: 30%">名稱</th>
+              <th>描述與功能定位</th>
+              <th style="width: 15%">物理分區</th>
+              <th style="width: 15%">模擬溫度 (Temp)</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- 由 JS 動態渲染 -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 提示彈窗 (Toast) -->
+  <div id="toast" class="toast">系統訊息提示</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
