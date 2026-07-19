@@ -65,6 +65,7 @@ The thermodynamic engine solves the system state-space variables sequentially us
 ### Step 1: Dynamic Air Heat Capacity Constant ($K$)
 
 The constant $K$ (expressed in $\text{kW}/\text{K}$) represents the thermal heat capacity rate of the flowing air stream:
+
 $$ K = \left(\frac{CMH}{3600}\right) \times RHO \times CP $$
 
 ### Step 2: Delta Temperature Engines
@@ -123,6 +124,7 @@ By solving the system of simultaneous heat-transfer equations representing the d
 A major highlight of this dual-recovery design is the **Multiplier Effect** mathematical relationship embedded in the state solutions. 
 
 The formula for the hot air entering the drying container ($t_6$) is:
+
 $$ t_6 = t_3 + \frac{\Delta T_c + \Delta T_h}{1 - e} $$
 
 Here, the denominator term $(1 - e)$ acts as a **thermal amplifier or multiplier**. 
@@ -131,7 +133,9 @@ For instance, if the heat exchanger efficiency is $e = 0.6$ (60%), the denominat
 This means that for every $1^\circ\text{C}$ of net heating capacity ($\Delta T_c + \Delta T_h$) injected into the system by the compressor condenser and electric heater, the temperature entering the drying chamber is amplified and increases by **$2.5^\circ\text{C}$** because of the thermal energy recaptured by the Bottom HX from the exhaust stream.
 
 Similarly, on the dehumidification loop, the evaporator outlet temperature is:
+
 $$ t_2 = t_0 - \frac{\Delta T_e}{1 - e} $$
+
 The heat exchanger pre-cools the incoming air, amplifying the evaporator's net cooling effect by the same $2.5\times$ factor. This allows the system to reach low dew points ($t_2$) required for deep dehumidification without needing a larger, power-hungry compressor.
 
 This dual heat-recovery configuration demonstrates extreme energy efficiency, showing how passive sensible heat recovery elements can dramatically lower active electrical energy demands.
