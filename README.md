@@ -73,38 +73,68 @@ $$ K = \left(\frac{CMH}{3600}\right) \times RHO \times CP $$
 The thermal load of each component produces a net change in temperature ($\Delta T$) on the airflow passing through it:
 
 **Evaporator Net Cooling ($\Delta T_e$):**
-$$ \Delta T_e = \frac{a \times COP \times SHR}{K} $$
+
+$$
+\Delta T_e = \frac{a \times COP \times SHR}{K}
+$$
 
 **Condenser Net Heating ($\Delta T_c$):**
-$$ \Delta T_c = \frac{a \times (COP + 1)}{K} $$
+
+$$
+\Delta T_c = \frac{a \times (COP + 1)}{K}
+$$
 
 **Electric Heater Net Heating ($\Delta T_h$):**
-$$ \Delta T_h = \frac{h}{K} $$
+
+$$
+\Delta T_h = \frac{h}{K}
+$$
 
 ### Step 3: Algebraic State-Space Solutions (Node Temperatures)
 
 By solving the system of simultaneous heat-transfer equations representing the dual-HX nodes under steady-state conditions, we yield the following closed-form algebraic solutions:
 
 **Evaporator Outlet ($t_2$):**
-$$ t_2 = t_0 - \frac{\Delta T_e}{1 - e} $$
+
+$$
+t_2 = t_0 - \frac{\Delta T_e}{1 - e}
+$$
 
 **Evaporator Inlet ($t_1$):**
-$$ t_1 = t_2 + \Delta T_e $$
+
+$$
+t_1 = t_2 + \Delta T_e
+$$
 
 **Cold Loop Outlet ($t_3$):**
-$$ t_3 = t_0 - \Delta T_e $$
+
+$$
+t_3 = t_0 - \Delta T_e
+$$
 
 **Container/Room Input ($t_6$):**
-$$ t_6 = t_3 + \frac{\Delta T_c + \Delta T_h}{1 - e} $$
+
+$$
+t_6 = t_3 + \frac{\Delta T_c + \Delta T_h}{1 - e}
+$$
 
 **Electric Heater Inlet ($t_5$):**
-$$ t_5 = t_6 - \Delta T_h $$
+
+$$
+t_5 = t_6 - \Delta T_h
+$$
 
 **Condenser Inlet ($t_4$):**
-$$ t_4 = t_6 - \Delta T_c - \Delta T_h $$
+
+$$
+t_4 = t_6 - \Delta T_c - \Delta T_h
+$$
 
 **System Exhaust ($t_7$):**
-$$ t_7 = t_3 + \Delta T_c + \Delta T_h $$
+
+$$
+t_7 = t_3 + \Delta T_c + \Delta T_h
+$$
 
 ---
 
