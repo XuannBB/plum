@@ -19,55 +19,19 @@ By leveraging dual heat exchangers, the system achieves a thermal cascade that d
 
 ---
 
-## 2. System Topology (Temperature Nodes)
+## 2. System Topology & Flow Diagram
 
-The airflow path is divided into eight key temperature nodes ($t_0$ to $t_7$). The sequence of temperature changes is represented in the diagram below:
+![System Architecture](C:\Users\newxu\Desktop\newfolder\xuan_folder\plum\pic.png)
 
-### Airflow & Heat Exchange Schematic
-```mermaid
-flowchart TD
-    subgraph Airflow Path
-        t0([t0: Ambient Input]) --> TopHX_Warm[Top HX: Warm Side]
-        TopHX_Warm --> t1([t1: Evaporator Inlet])
-        t1 --> Evap[Evaporator (Cooling/Dehumidifying)]
-        Evap --> t2([t2: Evaporator Outlet])
-        t2 --> TopHX_Cold[Top HX: Cold Side]
-        TopHX_Cold --> t3([t3: Cold Loop Outlet])
-        t3 --> BotHX_Cold[Bottom HX: Cold Side]
-        BotHX_Cold --> t4([t4: Condenser Inlet])
-        t4 --> Cond[Condenser (Heating)]
-        Cond --> t5([t5: Electric Heater Inlet])
-        t5 --> Heat[Electric Heater]
-        Heat --> t6([t6: Container/Room Input])
-        t6 --> Container[Drying Container]
-        Container --> BotHX_Warm[Bottom HX: Hot Side]
-        BotHX_Warm --> t7([t7: System Exhaust])
-    end
-
-    subgraph Heat Recovery Loops
-        TopHX_Warm -. Heat Exchange .-> TopHX_Cold
-        BotHX_Warm -. Heat Exchange .-> BotHX_Cold
-    end
-    
-    style t0 fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
-    style t1 fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
-    style t2 fill:#e0f7fa,stroke:#00acc1,stroke-width:2px
-    style t3 fill:#e0f2f1,stroke:#00897b,stroke-width:2px
-    style t4 fill:#fbe9e7,stroke:#ff5722,stroke-width:2px
-    style t5 fill:#ffebee,stroke:#e53935,stroke-width:2px
-    style t6 fill:#ffebee,stroke:#e53935,stroke-width:2px
-    style t7 fill:#eceff1,stroke:#546e7a,stroke-width:2px
-```
-
-### Node Descriptions
+The airflow path is divided into eight key temperature nodes ($t_0$ to $t_7$) along the physical airflow path:
 * **$t_0$ (Ambient Input):** The fresh ambient air stream entering the system.
-* **$t_1$ (Evaporator Inlet):** Air temperature after passing through the warm side of the Top HX (pre-cooled).
-* **$t_2$ (Evaporator Outlet):** Coldest point in the system, exiting the evaporator after dehumidification.
-* **$t_3$ (Cold Loop Outlet):** Temperature of the cold, dry air after it is reheated by incoming ambient air in the Top HX.
-* **$t_4$ (Condenser Inlet):** Temperature after the dry air is pre-heated by the hot exhaust air stream inside the Bottom HX.
-* **$t_5$ (Electric Heater Inlet):** Air temperature after passing through the condenser (heated by compressor thermal output).
-* **$t_6$ (Container/Room Input):** The hottest point in the system, after the electric heater, entering the drying chamber.
-* **$t_7$ (System Exhaust):** Temperature of the exhaust air after transferring heat back to the system via the Bottom HX.
+* **$t_1$ (Evaporator Inlet):** Air temperature after being pre-cooled via the Top HX.
+* **$t_2$ (Evaporator Outlet):** Coldest point in the system, where condensation occurs (air is dehumidified).
+* **$t_3$ (Cold Loop Outlet):** Cold, dry air after it is reheated by absorbing heat from incoming ambient air via the Top HX.
+* **$t_4$ (Condenser Inlet):** Air temperature after being pre-heated by the hot exhaust air via the Bottom HX.
+* **$t_5$ (Electric Heater Inlet):** Air temperature after picking up condenser waste heat.
+* **$t_6$ (Container/Room Input):** Hottest point in the airflow path, entering the drying chamber.
+* **$t_7$ (System Exhaust):** Temperature of the air discharged into the ambient after transferring its heat back into the system via the Bottom HX.
 
 ---
 
@@ -135,22 +99,21 @@ By solving the system of simultaneous heat-transfer equations representing the d
 
 ---
 
-## 5. Engineering Highlights: The Multiplier Effect
+## 5. Engineering Highlights
 
+### The Multiplier Effect
 A major highlight of this dual-recovery design is the **Multiplier Effect** mathematical relationship embedded in the state solutions. 
 
-### The Mathematical Amplifier
-The temperature formula for the hot air entering the drying container ($t_6$) is:
+The formula for the hot air entering the drying container ($t_6$) is:
 $$ t_6 = t_3 + \frac{\Delta T_c + \Delta T_h}{1 - e} $$
 
-Here, the denominator term $(1 - e)$ acts as a **thermal multiplier**:
-$$ \text{Multiplier} = \frac{1}{1 - e} $$
+Here, the denominator term $(1 - e)$ acts as a **thermal amplifier or multiplier**. 
+For instance, if the heat exchanger efficiency is $e = 0.6$ (60%), the denominator becomes $1 - 0.6 = 0.4$, which yields a multiplier of $\frac{1}{0.4} = 2.5$. 
 
-* Under standard operation with an aluminum cross-flow HX efficiency of $e = 0.6$ (60%), the multiplier becomes:
-  $$ \text{Multiplier} = \frac{1}{1 - 0.6} = 2.5 $$
-* This means that for every $1^\circ\text{C}$ of net heating capacity ($\Delta T_c + \Delta T_h$) injected into the system by the compressor condenser and electric heater, the temperature entering the drying chamber increases by **$2.5^\circ\text{C}$**.
-* Similarly, on the dehumidification loop, the evaporator outlet temperature is:
-  $$ t_2 = t_0 - \frac{\Delta T_e}{1 - e} $$
-  The heat exchanger pre-cools the incoming air, amplifying the evaporator's net cooling effect by the same $2.5\times$ factor. This allows the system to reach low dew points ($t_2$) required for deep dehumidification without needing a larger, power-hungry compressor.
+This means that for every $1^\circ\text{C}$ of net heating capacity ($\Delta T_c + \Delta T_h$) injected into the system by the compressor condenser and electric heater, the temperature entering the drying chamber is amplified and increases by **$2.5^\circ\text{C}$** because of the thermal energy recaptured by the Bottom HX from the exhaust stream.
 
-This dual heat-recovery configuration demonstrates how passive sensible heat recovery elements can dramatically lower active electrical energy demands, achieving high-efficiency industrial drying performance.
+Similarly, on the dehumidification loop, the evaporator outlet temperature is:
+$$ t_2 = t_0 - \frac{\Delta T_e}{1 - e} $$
+The heat exchanger pre-cools the incoming air, amplifying the evaporator's net cooling effect by the same $2.5\times$ factor. This allows the system to reach low dew points ($t_2$) required for deep dehumidification without needing a larger, power-hungry compressor.
+
+This dual heat-recovery configuration demonstrates extreme energy efficiency, showing how passive sensible heat recovery elements can dramatically lower active electrical energy demands.
