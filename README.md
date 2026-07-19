@@ -21,7 +21,7 @@ By leveraging dual heat exchangers, the system achieves a thermal cascade that d
 
 ## 2. System Topology & Flow Diagram
 
-![System Architecture](C:\Users\newxu\Desktop\newfolder\xuan_folder\plum\pic.png)
+![System Architecture](./pic.png)
 
 The airflow path is divided into eight key temperature nodes ($t_0$ to $t_7$) along the physical airflow path:
 * **$t_0$ (Ambient Input):** The fresh ambient air stream entering the system.
