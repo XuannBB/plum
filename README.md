@@ -19,7 +19,7 @@ By combining dual cross-flow aluminum heat exchangers with active refrigeration,
 
 ## 2. System Topology & Airflow Path
 
-![System Architecture](C:\Users\newxu\Desktop\newfolder\xuan_folder\plum\pic.png)
+![image](pic.png)
 
 The physical airflow path is segmented into 9 distinct thermal and humidity state nodes ($t_0$ to $t_8$, $W_0$ to $W_8$):
 
