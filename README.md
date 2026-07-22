@@ -8,7 +8,7 @@ Welcome to the Digital Twin Thermodynamic Simulation Engine for the Industrial D
 
 The simulation models a closed/open-loop hybrid airflow path engineered for agricultural and industrial material drying (e.g., plum thermal curing). The system architecture integrates:
 * **Active Cooling & Dehumidification:** A heat pump compressor evaporator that pre-cools airflow below its dew point to condense moisture.
-* **Active Thermal Recovery & Auxiliary Heating:** A compressor condenser that recaptures refrigeration work and evaporator cooling load, coupled with an auxiliary electric heater排 to elevate air temperatures to drying thresholds.
+* **Active Thermal Recovery & Auxiliary Heating:** A compressor condenser that recaptures refrigeration work and evaporator cooling load, coupled with an auxiliary electric heater to elevate air temperatures to drying thresholds.
 * **Dual Sensible Heat Recovery (Dual-HX Cascade):**
   * **Top Heat Exchanger (Top HX):** Utilizes cold, dry air exiting the evaporator to pre-cool incoming ambient fresh air.
   * **Bottom Heat Exchanger (Bottom HX):** Utilizes hot exhaust air leaving the drying chamber to pre-heat incoming dry air prior to the condenser.
@@ -71,36 +71,52 @@ The physical airflow path is segmented into 9 distinct thermal and humidity stat
 ### Saturation Vapor Pressure (Tetens Formula)
 The saturation vapor pressure $P_{sat}(T)$ at dry-bulb temperature $T$ (°C) is evaluated using the Tetens equation:
 
-$$ P_{sat}(T) = 0.61078 \times \exp\left(\frac{17.27 \times T}{T + 237.3}\right) \quad (\text{kPa}) $$
+$$
+P_{sat}(T) = 0.61078 \times \exp\left(\frac{17.27 \times T}{T + 237.3}\right) \quad (\text{kPa})
+$$
 
 ### Humidity Ratio Calculations
 The ambient absolute humidity ratio $W(T, RH, P_{atm})$ and saturation humidity ratio $W_{sat}(T, P_{atm})$ (in $\text{kg/kg}$) are calculated as:
 
-$$ W(T, RH, P_{atm}) = 0.622 \times \frac{P_{sat}(T) \times \left(\frac{RH}{100}\right)}{P_{atm} - P_{sat}(T) \times \left(\frac{RH}{100}\right)} $$
+$$
+W(T, RH, P_{atm}) = 0.622 \times \frac{P_{sat}(T) \times \left(\frac{RH}{100}\right)}{P_{atm} - P_{sat}(T) \times \left(\frac{RH}{100}\right)}
+$$
 
-$$ W_{sat}(T, P_{atm}) = 0.622 \times \frac{P_{sat}(T)}{P_{atm} - P_{sat}(T)} $$
+$$
+W_{sat}(T, P_{atm}) = 0.622 \times \frac{P_{sat}(T)}{P_{atm} - P_{sat}(T)}
+$$
 
 ### Dynamic COP with Temperature Lift Damping
 Compressor efficiency varies dynamically with the thermal lift across the refrigeration system $(t_5 - t_2)$:
 
-$$ COP = \max\left(1.5, \, 3.15 - 0.015 \times \left((t_5 - t_2) - 30\right)\right) $$
+$$
+COP = \max\left(1.5, \, 3.15 - 0.015 \times \left((t_5 - t_2) - 30\right)\right)
+$$
 
 ### Dynamic Sensible Heat Ratio (SHR) & Latent Heat Engine
 The latent heat of vaporization $h_{fg2}$ at evaporator outlet temperature $t_2$ is:
 
-$$ h_{fg2} = 2501 - 2.38 \times t_2 \quad (\text{kJ/kg}) $$
+$$
+h_{fg2} = 2501 - 2.38 \times t_2 \quad (\text{kJ/kg})
+$$
 
 The moisture content leaving the cold evaporator coil is constrained by saturation:
 
-$$ W_2 = \min\left(W_0, \, W_{sat}(t_2, P_{atm})\right) $$
+$$
+W_2 = \min\left(W_0, \, W_{sat}(t_2, P_{atm})\right)
+$$
 
 To determine the fraction of evaporator load dedicated to sensible cooling versus moisture removal, the SHR denominator $den$ is calculated:
 
-$$ den = C_p \times (t_1 - t_2) + h_{fg2} \times (W_0 - W_2) $$
+$$
+den = C_p \times (t_1 - t_2) + h_{fg2} \times (W_0 - W_2)
+$$
 
 To guarantee numerical stability and prevent mathematical breakdown when no moisture condenses ($W_0 \le W_2$) or when thermal gradients collapse ($t_1 \le t_2$), a dynamic SHR guardrail is enforced:
 
-$$ SHR = \begin{cases} 1.0 & \text{if } den \le 0 \text{ or } t_1 \le t_2 \\ \frac{C_p \times (t_1 - t_2)}{den} & \text{otherwise} \end{cases} $$
+$$
+SHR = \begin{cases} 1.0 & \text{if } den \le 0 \text{ or } t_1 \le t_2 \\ \frac{C_p \times (t_1 - t_2)}{den} & \text{otherwise} \end{cases}
+$$
 
 ---
 
@@ -109,42 +125,85 @@ $$ SHR = \begin{cases} 1.0 & \text{if } den \le 0 \text{ or } t_1 \le t_2 \\ \fr
 ### Component Thermal Delta Engines
 The enthalpy injection and extraction across components produce net temperature shifts:
 
-$$ \Delta T_e = \frac{a \times COP \times SHR}{K} $$
+$$
+\Delta T_e = \frac{a \times COP \times SHR}{K}
+$$
 
-$$ \Delta T_c = \frac{a \times (COP + 1)}{K} $$
+$$
+\Delta T_c = \frac{a \times (COP + 1)}{K}
+$$
 
-$$ \Delta T_h = \frac{b}{K} $$
+$$
+\Delta T_h = \frac{b}{K}
+$$
 
 ### Decoupled Node Temperature Solutions ($t_1$ to $t_8$)
 To prevent thermal deadlocks and eliminate ghost state feedback, the 9 temperature nodes are solved simultaneously across the thermal network:
 
 * **Evaporator Outlet ($t_2$):**
-  $$ t_2 = t_0 - \frac{\Delta T_e}{1 - e} $$
+
+  $$
+  t_2 = t_0 - \frac{\Delta T_e}{1 - e}
+  $$
+
 * **Evaporator Inlet ($t_1$):**
-  $$ t_1 = t_0 - \frac{\Delta T_e \times e}{1 - e} = t_2 + \Delta T_e $$
+
+  $$
+  t_1 = t_0 - \frac{\Delta T_e \times e}{1 - e} = t_2 + \Delta T_e
+  $$
+
 * **Cold Loop Outlet ($t_3$):**
-  $$ t_3 = t_0 - \Delta T_e $$
+
+  $$
+  t_3 = t_0 - \Delta T_e
+  $$
+
 * **Container/Room Input ($t_6$):**
-  $$ t_6 = t_3 + \frac{\Delta T_c + \Delta T_h - e \times \Delta T_{room}}{1 - e} $$
+
+  $$
+  t_6 = t_3 + \frac{\Delta T_c + \Delta T_h - e \times \Delta T_{room}}{1 - e}
+  $$
+
 * **Electric Heater Inlet ($t_5$):**
-  $$ t_5 = t_6 - \Delta T_h $$
+
+  $$
+  t_5 = t_6 - \Delta T_h
+  $$
+
 * **Condenser Inlet ($t_4$):**
-  $$ t_4 = t_6 - \Delta T_h - \Delta T_c $$
+
+  $$
+  t_4 = t_6 - \Delta T_h - \Delta T_c
+  $$
+
 * **Container Exhaust ($t_7$):**
-  $$ t_7 = t_6 - \Delta T_{room} $$
+
+  $$
+  t_7 = t_6 - \Delta T_{room}
+  $$
+
 * **System Final Exhaust ($t_8$):**
-  $$ t_8 = t_3 + \Delta T_c + \Delta T_h - \Delta T_{room} $$
+
+  $$
+  t_8 = t_3 + \Delta T_c + \Delta T_h - \Delta T_{room}
+  $$
 
 ### Moisture State Matrix ($W_0$ to $W_8$)
 Assuming zero moisture addition across dry components (heat exchangers, fans, condenser, and electric heater):
 
-$$ W_0 = W_1 = W_3 = W_4 = W_5 = W_6 $$
+$$
+W_0 = W_1 = W_3 = W_4 = W_5 = W_6
+$$
 
 Moisture pickup within the drying chamber increases absolute humidity at the container return node $W_7$:
 
-$$ W_7 = W_2 + \frac{1.006 \times \Delta T_{room}}{2501 - 2.38 \times t_7} \quad (\text{kg/kg}) $$
+$$
+W_7 = W_2 + \frac{1.006 \times \Delta T_{room}}{2501 - 2.38 \times t_7} \quad (\text{kg/kg})
+$$
 
-$$ W_8 = W_7 $$
+$$
+W_8 = W_7
+$$
 
 ---
 
