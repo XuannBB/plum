@@ -1,161 +1,184 @@
-# Thermodynamic State-Space Simulation Engine for Dual-HX Dehumidification & Drying Container
+# Dual Heat Recovery Industrial Dehumidification Digital Twin System
 
-This directory contains the thermodynamic state-space simulation engine for an industrial-grade container dehumidification and drying system. The simulation models a closed/open-loop hybrid airflow path designed to achieve precise drying temperatures and humidity control under high energy efficiency constraints.
-
-The physical architecture features a compressor (for cooling/dehumidification and condenser heating), auxiliary electric heaters, and a dual cross-flow sensible heat-recovery (Sensible Heat Exchanger - HX) configuration utilizing high-performance aluminum cores.
+Welcome to the Digital Twin Thermodynamic Simulation Engine for the Industrial Dual-Heat-Recovery Dehumidification and Drying System. This high-precision backend solver models the coupled psychrometric and thermal state-space dynamics of an industrial-grade container drying system.
 
 ---
 
 ## 1. Project Overview
 
-The simulation calculates the steady-state thermal behavior of the airflow across eight critical temperature nodes in the system. The model incorporates:
-- **Active Cooling & Dehumidification:** The evaporator cools the air below its dew point, condensing water vapor out of the airflow.
-- **Active Heating:** The condenser recaptures compressor work and evaporator heat, pre-heating the air before it passes through the auxiliary electric heater.
-- **Dual Sensible Heat Recovery:**
-  - **Top Heat Exchanger (Top HX):** Pre-cools the ambient air using the cold, dry air exiting the evaporator.
-  - **Bottom Heat Exchanger (Bottom HX):** Pre-heats the air entering the condenser using the hot exhaust air returning from the container/drying chamber.
+The simulation models a closed/open-loop hybrid airflow path engineered for agricultural and industrial material drying (e.g., plum thermal curing). The system architecture integrates:
+* **Active Cooling & Dehumidification:** A heat pump compressor evaporator that pre-cools airflow below its dew point to condense moisture.
+* **Active Thermal Recovery & Auxiliary Heating:** A compressor condenser that recaptures refrigeration work and evaporator cooling load, coupled with an auxiliary electric heater排 to elevate air temperatures to drying thresholds.
+* **Dual Sensible Heat Recovery (Dual-HX Cascade):**
+  * **Top Heat Exchanger (Top HX):** Utilizes cold, dry air exiting the evaporator to pre-cool incoming ambient fresh air.
+  * **Bottom Heat Exchanger (Bottom HX):** Utilizes hot exhaust air leaving the drying chamber to pre-heat incoming dry air prior to the condenser.
 
-By leveraging dual heat exchangers, the system achieves a thermal cascade that dramatically multiplies cooling and heating capacities without consuming extra electrical energy.
-
----
-
-## 2. System Topology & Flow Diagram
-
-![System Architecture](./pic.png)
-
-The airflow path is divided into eight key temperature nodes ($t_0$ to $t_7$) along the physical airflow path:
-* **$t_0$ (Ambient Input):** The fresh ambient air stream entering the system.
-* **$t_1$ (Evaporator Inlet):** Air temperature after being pre-cooled via the Top HX.
-* **$t_2$ (Evaporator Outlet):** Coldest point in the system, where condensation occurs (air is dehumidified).
-* **$t_3$ (Cold Loop Outlet):** Cold, dry air after it is reheated by absorbing heat from incoming ambient air via the Top HX.
-* **$t_4$ (Condenser Inlet):** Air temperature after being pre-heated by the hot exhaust air via the Bottom HX.
-* **$t_5$ (Electric Heater Inlet):** Air temperature after picking up condenser waste heat.
-* **$t_6$ (Container/Room Input):** Hottest point in the airflow path, entering the drying chamber.
-* **$t_7$ (System Exhaust):** Temperature of the air discharged into the ambient after transferring its heat back into the system via the Bottom HX.
+By combining dual cross-flow aluminum heat exchangers with active refrigeration, the engine solves a coupled psychrometric and sensible heat dynamic iteration loop to predict steady-state performance under varying ambient and operational conditions.
 
 ---
 
-## 3. Parameters Dictionary
+## 2. System Topology & Airflow Path
 
-### Independent Variables (User Inputs)
+![System Architecture](C:\Users\newxu\Desktop\newfolder\xuan_folder\plum\pic.png)
 
-| Parameter | Symbol | Description | Unit | Range / Typical Value |
+The physical airflow path is segmented into 9 distinct thermal and humidity state nodes ($t_0$ to $t_8$, $W_0$ to $W_8$):
+
+* **$t_0, W_0$ (Ambient Input):** Fresh outdoor air entering the Top HX at ambient temperature $t_0$ and relative humidity $RH_0$.
+* **$t_1, W_1$ (Evaporator Inlet):** Air stream temperature after pre-cooling through the Top HX ($W_1 = W_0$).
+* **$t_2, W_2$ (Evaporator Outlet / Coldest Point):** Air exiting the evaporator coil after forced cooling and moisture condensation ($W_2 = \min(W_0, W_{sat}(t_2))$).
+* **$t_3, W_3$ (Cold Loop Outlet):** Cold, dry air stream after absorbing heat from incoming ambient air inside the Top HX ($W_3 = W_0$).
+* **$t_4, W_4$ (Condenser Inlet):** Dry air stream after pre-heating via exhaust heat recaptured in the Bottom HX ($W_4 = W_0$).
+* **$t_5, W_5$ (Electric Heater Inlet):** Air stream after picking up compressor condenser waste heat ($W_5 = W_0$).
+* **$t_6, W_6$ (Container/Room Input / Hottest Point):** Hottest air stream entering the drying container chamber after passing through the auxiliary electric heater ($W_6 = W_0$).
+* **$t_7, W_7$ (Container Exhaust):** Air discharged from the drying room after undergoing evaporative cooling and picking up moisture from material drying ($t_7 = t_6 - \Delta T_{room}$).
+* **$t_8, W_8$ (System Final Exhaust):** Final exhaust air discharged into the atmosphere after transferring thermal energy back into the system via the Bottom HX ($W_8 = W_7$).
+
+---
+
+## 3. Variables & Constants Dictionary
+
+### Environmental Inputs
+
+| Variable | Symbol | Description | Unit | Default Value |
 | :--- | :---: | :--- | :---: | :---: |
-| Ambient Temp | `t0` | Incoming outdoor air temperature | °C | -10.0 ~ 45.0 (Default: 30.0) |
-| Airflow Volume | `CMH` | Volumetric airflow rate | m³/h | 500.0 ~ 2500.0 (Default: 1500.0) |
-| Compressor Power | `a` | Electrical power consumption of the compressor | kW | 0.5 ~ 10.0 (Default: 2.5) |
-| Heater Power | `h` | Power consumption of the electric auxiliary heater | kW | 0.0 ~ 15.0 (Default: 4.0) |
-| Coefficient of Performance | `COP` | Compressor efficiency indicator | - | 1.5 ~ 5.0 (Default: 3.15) |
-| Sensible Heat Ratio | `SHR` | Fraction of evaporator load dedicated to sensible cooling | - | 0.4 ~ 0.9 (Default: 0.65) |
-| Heat Exchanger Efficiency | `e` | Effectiveness of both Top and Bottom HXs | - | 0.0 ~ 1.0 (Default: 0.6) |
+| Ambient Temp | $t_0$ | Incoming outdoor dry-bulb temperature | °C | 30.0 |
+| Ambient RH | $RH_0$ | Incoming outdoor relative humidity | % | 80.0 |
+| Barometric Pressure | $P_{atm}$ | Atmospheric pressure | kPa | 101.325 |
+
+### Equipment & Operational Inputs
+
+| Parameter | Symbol | Description | Unit | Default Value |
+| :--- | :---: | :--- | :---: | :---: |
+| Compressor Power | $a$ | Compressor electrical input power | kW | 2.4 |
+| Heater Power | $b$ | Auxiliary electric heater input power | kW | 0.0 |
+| Fan Power | $c$ | Blower and exhaust fan electrical power | kW | 0.54 |
+| Airflow Volume | $CMH$ | Volumetric airflow rate | m³/h | 1500.0 |
+| HX Efficiency | $e$ | Heat exchanger thermal efficiency ($0 \le e \le 0.95$) | - | 0.60 |
+| Container Temp Drop | $\Delta T_{room}$ | Evaporative cooling temperature drop in drying chamber | °C | 10.0 |
 
 ### Physical Constants
 
 | Constant | Symbol | Description | Value | Unit |
 | :--- | :---: | :--- | :---: | :---: |
-| Air Density | `RHO` | Standard density of air used in volumetric-mass conversion | 1.15 | kg/m³ |
-| Specific Heat of Air | `CP` | Isobaric specific heat capacity of dry air | 1.006 | kJ/(kg·K) |
+| Air Density | $\rho$ | Standard dry air mass density | 1.15 | kg/m³ |
+| Specific Heat | $C_p$ | Isobaric specific heat capacity of dry air | 1.006 | kJ/(kg·K) |
+| Capacity Rate | $K$ | Thermal mass flow heat capacity rate | $\left(\frac{CMH}{3600}\right) \times \rho \times C_p$ | kW/K |
 
 ---
 
-## 4. Core Mathematical Engines (State-Space Equations)
+## 4. Core Physical Engines
 
-The thermodynamic engine solves the system state-space variables sequentially using three mathematical stages.
+### Saturation Vapor Pressure (Tetens Formula)
+The saturation vapor pressure $P_{sat}(T)$ at dry-bulb temperature $T$ (°C) is evaluated using the Tetens equation:
 
-### Step 1: Dynamic Air Heat Capacity Constant ($K$)
+$$ P_{sat}(T) = 0.61078 \times \exp\left(\frac{17.27 \times T}{T + 237.3}\right) \quad (\text{kPa}) $$
 
-The constant $K$ (expressed in $\text{kW}/\text{K}$) represents the thermal heat capacity rate of the flowing air stream:
+### Humidity Ratio Calculations
+The ambient absolute humidity ratio $W(T, RH, P_{atm})$ and saturation humidity ratio $W_{sat}(T, P_{atm})$ (in $\text{kg/kg}$) are calculated as:
 
-$$ K = \left(\frac{CMH}{3600}\right) \times RHO \times CP $$
+$$ W(T, RH, P_{atm}) = 0.622 \times \frac{P_{sat}(T) \times \left(\frac{RH}{100}\right)}{P_{atm} - P_{sat}(T) \times \left(\frac{RH}{100}\right)} $$
 
-### Step 2: Delta Temperature Engines
+$$ W_{sat}(T, P_{atm}) = 0.622 \times \frac{P_{sat}(T)}{P_{atm} - P_{sat}(T)} $$
 
-The thermal load of each component produces a net change in temperature ($\Delta T$) on the airflow passing through it:
+### Dynamic COP with Temperature Lift Damping
+Compressor efficiency varies dynamically with the thermal lift across the refrigeration system $(t_5 - t_2)$:
 
-**Evaporator Net Cooling ($\Delta T_e$):**
+$$ COP = \max\left(1.5, \, 3.15 - 0.015 \times \left((t_5 - t_2) - 30\right)\right) $$
 
-$$
-\Delta T_e = \frac{a \times COP \times SHR}{K}
-$$
+### Dynamic Sensible Heat Ratio (SHR) & Latent Heat Engine
+The latent heat of vaporization $h_{fg2}$ at evaporator outlet temperature $t_2$ is:
 
-**Condenser Net Heating ($\Delta T_c$):**
+$$ h_{fg2} = 2501 - 2.38 \times t_2 \quad (\text{kJ/kg}) $$
 
-$$
-\Delta T_c = \frac{a \times (COP + 1)}{K}
-$$
+The moisture content leaving the cold evaporator coil is constrained by saturation:
 
-**Electric Heater Net Heating ($\Delta T_h$):**
+$$ W_2 = \min\left(W_0, \, W_{sat}(t_2, P_{atm})\right) $$
 
-$$
-\Delta T_h = \frac{h}{K}
-$$
+To determine the fraction of evaporator load dedicated to sensible cooling versus moisture removal, the SHR denominator $den$ is calculated:
 
-### Step 3: Algebraic State-Space Solutions (Node Temperatures)
+$$ den = C_p \times (t_1 - t_2) + h_{fg2} \times (W_0 - W_2) $$
 
-By solving the system of simultaneous heat-transfer equations representing the dual-HX nodes under steady-state conditions, we yield the following closed-form algebraic solutions:
+To guarantee numerical stability and prevent mathematical breakdown when no moisture condenses ($W_0 \le W_2$) or when thermal gradients collapse ($t_1 \le t_2$), a dynamic SHR guardrail is enforced:
 
-**Evaporator Outlet ($t_2$):**
-
-$$
-t_2 = t_0 - \frac{\Delta T_e}{1 - e}
-$$
-
-**Evaporator Inlet ($t_1$):**
-
-$$
-t_1 = t_2 + \Delta T_e
-$$
-
-**Cold Loop Outlet ($t_3$):**
-
-$$
-t_3 = t_0 - \Delta T_e
-$$
-
-**Container/Room Input ($t_6$):**
-
-$$
-t_6 = t_3 + \frac{\Delta T_c + \Delta T_h}{1 - e}
-$$
-
-**Electric Heater Inlet ($t_5$):**
-
-$$
-t_5 = t_6 - \Delta T_h
-$$
-
-**Condenser Inlet ($t_4$):**
-
-$$
-t_4 = t_6 - \Delta T_c - \Delta T_h
-$$
-
-**System Exhaust ($t_7$):**
-
-$$
-t_7 = t_3 + \Delta T_c + \Delta T_h
-$$
+$$ SHR = \begin{cases} 1.0 & \text{if } den \le 0 \text{ or } t_1 \le t_2 \\ \frac{C_p \times (t_1 - t_2)}{den} & \text{otherwise} \end{cases} $$
 
 ---
 
-## 5. Engineering Highlights
+## 5. Decoupled State-Space Matrix
 
-### The Multiplier Effect
-A major highlight of this dual-recovery design is the **Multiplier Effect** mathematical relationship embedded in the state solutions. 
+### Component Thermal Delta Engines
+The enthalpy injection and extraction across components produce net temperature shifts:
 
-The formula for the hot air entering the drying container ($t_6$) is:
+$$ \Delta T_e = \frac{a \times COP \times SHR}{K} $$
 
-$$ t_6 = t_3 + \frac{\Delta T_c + \Delta T_h}{1 - e} $$
+$$ \Delta T_c = \frac{a \times (COP + 1)}{K} $$
 
-Here, the denominator term $(1 - e)$ acts as a **thermal amplifier or multiplier**. 
-For instance, if the heat exchanger efficiency is $e = 0.6$ (60%), the denominator becomes $1 - 0.6 = 0.4$, which yields a multiplier of $\frac{1}{0.4} = 2.5$. 
+$$ \Delta T_h = \frac{b}{K} $$
 
-This means that for every $1^\circ\text{C}$ of net heating capacity ($\Delta T_c + \Delta T_h$) injected into the system by the compressor condenser and electric heater, the temperature entering the drying chamber is amplified and increases by **$2.5^\circ\text{C}$** because of the thermal energy recaptured by the Bottom HX from the exhaust stream.
+### Decoupled Node Temperature Solutions ($t_1$ to $t_8$)
+To prevent thermal deadlocks and eliminate ghost state feedback, the 9 temperature nodes are solved simultaneously across the thermal network:
 
-Similarly, on the dehumidification loop, the evaporator outlet temperature is:
+* **Evaporator Outlet ($t_2$):**
+  $$ t_2 = t_0 - \frac{\Delta T_e}{1 - e} $$
+* **Evaporator Inlet ($t_1$):**
+  $$ t_1 = t_0 - \frac{\Delta T_e \times e}{1 - e} = t_2 + \Delta T_e $$
+* **Cold Loop Outlet ($t_3$):**
+  $$ t_3 = t_0 - \Delta T_e $$
+* **Container/Room Input ($t_6$):**
+  $$ t_6 = t_3 + \frac{\Delta T_c + \Delta T_h - e \times \Delta T_{room}}{1 - e} $$
+* **Electric Heater Inlet ($t_5$):**
+  $$ t_5 = t_6 - \Delta T_h $$
+* **Condenser Inlet ($t_4$):**
+  $$ t_4 = t_6 - \Delta T_h - \Delta T_c $$
+* **Container Exhaust ($t_7$):**
+  $$ t_7 = t_6 - \Delta T_{room} $$
+* **System Final Exhaust ($t_8$):**
+  $$ t_8 = t_3 + \Delta T_c + \Delta T_h - \Delta T_{room} $$
 
-$$ t_2 = t_0 - \frac{\Delta T_e}{1 - e} $$
+### Moisture State Matrix ($W_0$ to $W_8$)
+Assuming zero moisture addition across dry components (heat exchangers, fans, condenser, and electric heater):
 
-The heat exchanger pre-cools the incoming air, amplifying the evaporator's net cooling effect by the same $2.5\times$ factor. This allows the system to reach low dew points ($t_2$) required for deep dehumidification without needing a larger, power-hungry compressor.
+$$ W_0 = W_1 = W_3 = W_4 = W_5 = W_6 $$
 
-This dual heat-recovery configuration demonstrates extreme energy efficiency, showing how passive sensible heat recovery elements can dramatically lower active electrical energy demands.
+Moisture pickup within the drying chamber increases absolute humidity at the container return node $W_7$:
+
+$$ W_7 = W_2 + \frac{1.006 \times \Delta T_{room}}{2501 - 2.38 \times t_7} \quad (\text{kg/kg}) $$
+
+$$ W_8 = W_7 $$
+
+---
+
+## 6. Numerical Solver Architecture
+
+### Circular Dependencies
+The system exhibits strong circular dependencies:
+1. $COP$ depends on the temperature lift $(t_5 - t_2)$.
+2. $\Delta T_e$, $\Delta T_c$, and $\Delta T_h$ depend on $COP$ and $SHR$.
+3. Node temperatures ($t_1, t_2, t_5, t_6$) depend on component deltas $\Delta T_e, \Delta T_c, \Delta T_h$.
+4. Dehumidification $W_2$ and $SHR$ depend on evaporator temperature $t_2$ and inlet temperature $t_1$.
+
+### Numerical Iteration Loop
+To resolve these non-linear feedback loops, the engine executes a fixed-point numerical solver loop:
+
+```
+[Initial Guesses] SHR = 0.7, t2 = t0 - 10, t5 = t0 + 20
+         │
+         ▼
+ ┌────────────────────────────────────────────────────────┐
+ │ 1. Evaluate Dynamic COP = max(1.5, 3.15 - 0.015*(lift))│
+ │ 2. Compute Deltas: dTe, dTc, dTh                       │
+ │ 3. Update Decoupled Nodes: t2, t1, t3, t6, t5         │
+ │ 4. Evaluate Latent Heat & Dehumidification: W2         │
+ │ 5. Apply Dynamic SHR Guardrail (Mathematical Healing) │
+ └────────────────────────────────────────────────────────┘
+         │
+         ▼
+ Is |t2 - t2_prev| < 0.001 or Iterations >= 50?
+ ├── NO  ──► Repeat Loop
+ └── YES ──► Compute Final State Matrix (t4, t7, t8, W0..W8)
+```
+
+### Boundary Guardrails & Convergence Protection
+1. **Stagnant Airflow Guardrail:** If $CMH \le 0$, $CMH$ is clamped to $0.001\text{ m}^3/\text{h}$ to prevent division by zero during $K$ calculation.
+2. **Efficiency Boundary:** Heat exchanger efficiency $e$ is bounded within $[0.0, 0.95]$ to prevent asymptotic division by zero at $e = 1.0$.
+3. **Dynamic SHR Healing:** Ensures $SHR$ smoothly defaults to $1.0$ under non-condensing or sensible-only conditions, preventing negative $SHR$ or `NaN` loops.
